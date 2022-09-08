@@ -28,7 +28,7 @@ else {
     Write-Host "Device has been up" $UpTimeInt "days"
 }
 
-$LastInstallDate = (Get-HotFix | Sort-Object -Property InstalledOn)[-1] | Select-Object -ExpandProperty 'InstalledOn'
+$LastInstallDate = Get-HotFix | Sort-Object -Property InstalledOn | Select-Object -Property @{l='InstalledDate';e={$_.InstalledON.ToString('dd MMM yyyy')}}
 
 Write-Host "The last installed update or hotfix was installed on $LastInstallDate"
 Write-Host ""
