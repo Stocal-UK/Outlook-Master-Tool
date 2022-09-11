@@ -1,5 +1,5 @@
 $omtLastUpdate = "September 2022"
-Write-Host "Outlook Master Tool (v1.1) by Callum Stones"
+Write-Host "Outlook Master Tool (v1.2 Team Beta) by Callum Stones"
 Write-Host "QA by Anthony Wood & Luke Jackson"
 Write-Host "Tool last updated: $omtLastUpdate"
 
@@ -28,9 +28,9 @@ else {
     Write-Host "Device has been up" $UpTimeInt "days"
 }
 
-$LastInstallDate = Get-HotFix | Sort-Object -Property InstalledOn | Select-Object -Property @{l='InstalledDate';e={$_.InstalledON.ToString('dd MMM yyyy')}}
+$LastInstallDate = Get-HotFix | Sort-Object -Property InstalledOn | Select-Object -Last 1 -ExpandProperty InstalledOn
+Write-Host "The last installed update or hotfix was installed on $($LastInstallDate.ToString('dd MMMM yyyy'))"
 
-Write-Host "The last installed update or hotfix was installed on $LastInstallDate"
 Write-Host ""
 
 Do {
@@ -135,6 +135,11 @@ Start-Sleep -Seconds 3
 
 if ($selection -eq '5')
 {
+
+Write-Host "If either the cache and/or profile does not exist, an error will occur, this is normal..."
+
+Start-Sleep -Seconds 5
+
 Clear-Host
 
 Write-Host "Removing Profile..."
@@ -183,7 +188,7 @@ if ($selection -eq '7')
 {
 Clear-Host
 
-Write-Host "This will clear the Office Cache and Office will need to be reinstalled manually! Continue? (Y/N)"
+Write-Host "This will clear the Office Cache. Continue? (Y/N)"
 
 $confirm7 = Read-Host
 
@@ -201,7 +206,7 @@ Remove-Item -Path "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Office" -Force
 
 Clear-Host
 
-Write-Host "Cache Deleted. Reinstall Office!"
+Write-Host "Cache Deleted."
 
 Start-Sleep -Seconds 3
 }
@@ -232,11 +237,19 @@ Clear-Host
 
 Write-Host "Log out forced. You must now check that 'Connected Work + School Accounts' has disconnected. Ensure you open an Office Application and sign out of any connected accounts using the GUI as this is not possible via script."
 
-Start-Sleep -Seconds 15
+Read-Host -Prompt "Press any key to continue..."
 }
 
 if ($selection -eq '9')
 {
+
+Write-Host "Please only run this sub tool on an engineers device! AzureAD Module should not be connected on an end users machine!"
+$confirm9 = Read-Host "Confirm you have read the above (Y to continue)"
+
+if ($confirm9 -ne 'Y') {
+
+}else{
+
 Clear-Host
 
 Install-Module AzureAD
@@ -268,6 +281,7 @@ Clear-Host
 Write-Host "All Sessions Revoked!"
 
 Start-Sleep -Seconds 3
+}
 }
 
 if ($selection -eq '10') 
