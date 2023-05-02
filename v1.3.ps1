@@ -34,8 +34,8 @@ function Show-Menu {
 }
 
 function Show-LastUpdate {
-    $omtLastUpdate = "September 2022"
-    Write-Host "Outlook Master Tool (v1.2 Team Beta) by Callum Stones"
+    $omtLastUpdate = "May 2023"
+    Write-Host "Outlook Master Tool (v1.3 Team Beta) by Callum Stones"
     Write-Host "QA by Anthony Wood & Luke Jackson"
     Write-Host "Tool last updated: $omtLastUpdate"
 }
