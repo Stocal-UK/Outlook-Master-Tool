@@ -3,8 +3,8 @@
     # Script Name: Outlook_Master_Tool.ps1
     # Author: Callum Stones & Luke Jackson
     # Company: HBP Systems
-    # Date Created: 02/05/2023 
-    # Version: 1.3
+    # Date Created: 12/05/2023 
+    # Version: 1.4
     #
     # Copyright (c) Callum Stones, HBP Systems. All rights reserved.
     # This script is provided "AS IS" without any warranties and is intended
@@ -14,9 +14,11 @@
     ###########################################################################
 #>
 
+$LocalPath = (Get-CimInstance Win32_ComputerSystem).UserName
+$omtLastUpdate = "May 2023"
 
 function Show-Menu {
-    Clear-Host
+    
     Write-Host "Ensure all Office Apps are closed or errors will occur!"
     Write-Host ""
     Write-Host "Select the desired tool:"
@@ -35,9 +37,8 @@ function Show-Menu {
 
 function Show-LastUpdate {
     $omtLastUpdate = "May 2023"
-    Write-Host "Outlook Master Tool (v1.3 Team Beta) by Callum Stones"
-    Write-Host "QA by Anthony Wood & Luke Jackson"
-    Write-Host "Tool last updated: $omtLastUpdate"
+    Write-Host "Outlook Master Tool (v1.4) by Callum Stones & Luke Jackson"
+    Write-Host "Tool last updated: $omtLastUpdate" -ForegroundColour Green
 }
 
 function Show-Uptime {
@@ -56,178 +57,169 @@ function Show-LastInstallDate {
     Write-Host "The last installed update or hotfix was installed on $($LastInstallDate.ToString('dd MMMM yyyy'))"
 }
 
-function Run-ADAL {
-    Clear-Host
+function Invoke-ADAL {
+    
     New-Item -Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Common\Identity\ -Force | Out-Null
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Common\Identity\ –Name EnableADAL -Value 1 -PropertyType DWord -Force | Out-Null
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Common\Identity\ –Name Version -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "ADAL Keys written. Restart Outlook."
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 2
 }
 
-function Run-WAM {
-    Clear-Host
+function Invoke-WAM {
+    
     New-Item -Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Common\Identity\ -Force | Out-Null
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Common\Identity\ –Name DisableADALatopWAMOverride -Value 1 -PropertyType DWord -Force | Out-Null
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Common\Identity\ –Name DisableAADWAM -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "WAM Keys written. Restart Outlook."
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 2
 }
 
-function Run-MSOAuth {
-    Clear-Host
+function Invoke-MSOAuth {
+    
     New-Item -Path HKCU:\SOFTWARE\Microsoft\Exchange\ -Force | Out-Null
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Exchange\ –Name AlwaysUseMSOAuthForAutoDiscover -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "MSOAuth Keys written. Restart Outlook."
-    Start-Sleep -Seconds 3
-    }
+    Start-Sleep -Seconds 2
+}   
+   
+function Invoke-AADBroker {
     
-    function Run-AADBroker {
-    Clear-Host
     Write-Host "Rewriting AAD Broker Plugin. This can take up to a minute. Please wait..."
-    Start-Sleep -Seconds 3
-    Clear-Host
+    Start-Sleep -Seconds 2
+    
     Write-Host "Stopping CryptoGraphic Services..."
     Stop-Service Crypto | Out-Null
-    Start-Sleep -Seconds 15
-    Clear-Host
+    Start-Sleep -Seconds 2
+    
     Write-Host "Removing AAD Broker Cache..."
-    Remove-Item -Path "C:\Users$env:USERNAME\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
-    Start-Sleep -Seconds 10
-    Clear-Host
+    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
+    Start-Sleep -Seconds 2
+    
     Write-Host "Starting CryptoGraphic Services..."
     Start-Service Crypto | Out-Null
-    Start-Sleep -Seconds 10
-    Clear-Host
-    Write-Host "AAD Broker Plugin Rewritten. Restart Outlook."
-    Start-Sleep -Seconds 3
-    }
+    Start-Sleep -Seconds 2
     
-    function Run-ClearProfilesCache {
+    Write-Host "AAD Broker Plugin Rewritten. Restart Outlook."
+    Start-Sleep -Seconds 2
+}
+    
+function Invoke-ClearProfilesCache {
     Write-Host "If either the cache and/or profile does not exist, an error will occur, this is normal..."
-    Start-Sleep -Seconds 5
-    Clear-Host
+    Start-Sleep -Seconds 2
+    
     Write-Host "Removing Profile..."
     Start-Sleep -Seconds 2
     Remove-Item -Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\ -Force -Recurse | Out-Null
     New-Item -Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\ -Force | Out-Null
     Remove-Item -Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Outlook\Profiles\ -Force -Recurse | Out-Null
     New-Item -Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Outlook\Profiles\ -Force | Out-Null
-    Start-Sleep -Seconds 3
-    Clear-Host
-    Write-Host "Clearing Cache..."
-    Remove-Item -Path "C:\Users$env:USERNAME\AppData\Local\Microsoft\Outlook" -Force -Recurse | Out-Null
-    Start-Sleep -Seconds 3
-    Clear-Host
-    Write-Host "Profile Removed & Cache Cleared. Restart Outlook."
-    Start-Sleep -Seconds 3
-    }
+    Start-Sleep -Seconds 2
     
-    function Run-CredentialManager {
-    Clear-Host
+    Write-Host "Clearing Cache..."
+    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Outlook" -Force -Recurse | Out-Null
+    Start-Sleep -Seconds 2
+    
+    Write-Host "Profile Removed & Cache Cleared. Restart Outlook."
+    Start-Sleep -Seconds 2
+}
+    
+function Invoke-CredentialManager {
+    
     Write-Host "A new window will appear with all stored credentials, delete appropriate entries as required."
-    Start-Sleep -Seconds 4
+    Start-Sleep -Seconds 2
     Start-Process rundll32.exe keymgr.dll, KRShowKeyMgr
-    Start-Sleep -Seconds 3
-    }
+    Start-Sleep -Seconds 2
+}
 
-    function Run-ClearOfficeCache {
-        Clear-Host
+function Invoke-ClearOfficeCache {
+        
         Write-Host "This will clear the Office Cache. Continue? (Y/N)"
         $confirm7 = Read-Host
-        Clear-Host
+        
         if ($confirm7 -eq 'Y') {
         Write-Host "Deleting Cache..."
         Start-Sleep -Seconds 2
-        Remove-Item -Path "C:\Users$env:USERNAME\AppData\Local\Microsoft\Office" -Force -Recurse | Out-Null
-        Clear-Host
+        Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Office" -Force -Recurse | Out-Null
+        
         Write-Host "Cache Deleted."
-Start-Sleep -Seconds 3
-}
+        Start-Sleep -Seconds 2
+} 
+
+function Invoke-ForceLogout365ConnectedServicesOnWorkstation {
+
+    Write-Host "Forcing Log Out. This can take a while. Please wait..."
+    Start-Sleep -Seconds 2
+    Stop-Service Crypto | Out-Null
+    Start-Sleep -Seconds 2
+    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
+    Start-Sleep -Seconds 2
+    Start-Service Crypto | Out-Null
+    Start-Sleep -Seconds 2
+
+    Write-Host "Log out forced. You must now check that 'Connected Work + School Accounts' has disconnected. Ensure you open an Office Application and sign out of any connected accounts using the GUI as this is not possible via script."
+    Read-Host -Prompt "Press any key to continue..."
 }
 
-function Run-ForceLogout365ConnectedServicesOnWorkstation {
-Clear-Host
-Write-Host "Forcing Log Out. This can take a while. Please wait..."
-Start-Sleep -Seconds 3
-Stop-Service Crypto | Out-Null
-Start-Sleep -Seconds 15
-Remove-Item -Path "C:\Users$env:USERNAME\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
-Start-Sleep -Seconds 10
-Start-Service Crypto | Out-Null
-Start-Sleep -Seconds 10
-Clear-Host
-Write-Host "Log out forced. You must now check that 'Connected Work + School Accounts' has disconnected. Ensure you open an Office Application and sign out of any connected accounts using the GUI as this is not possible via script."
-Read-Host -Prompt "Press any key to continue..."
+function Invoke-ForceLogout365ConnectedServicesOnAzureAD {
+
+    Write-Host "Please only run this sub tool on an engineer's device! AzureAD Module should not be connected on an end-user's machine!"
+    $confirm9 = Read-Host "Confirm you have read the above (Y to continue)"
+    if ($confirm9 -eq 'Y') {
+
+    Install-Module AzureAD
+
+    $azureuser = Read-Host "Type full email of Azure user to sign out"
+
+    Write-Host "Session will prompt for admin credentials for the relevant Azure Environment..."
+    Start-Sleep -Seconds 2
+    Connect-AzureAD
+    Start-Sleep -Seconds 2
+
+    Write-Host "Revoking sessions for $azureuser ..."
+    Start-Sleep -Seconds 2
+    Get-AzureADUser -SearchString $azureuser | Revoke-AzureADUserAllRefreshToken
+
+    Write-Host "All Sessions Revoked!"
+    Start-Sleep -Seconds 2
+    }
 }
 
-function Run-ForceLogout365ConnectedServicesOnAzureAD {
-Clear-Host
-Write-Host "Please only run this sub tool on an engineer's device! AzureAD Module should not be connected on an end-user's machine!"
-$confirm9 = Read-Host "Confirm you have read the above (Y to continue)"
-if ($confirm9 -eq 'Y') {
-Clear-Host
-Install-Module AzureAD
-Clear-Host
-$azureuser = Read-Host "Type full email of Azure user to sign out"
-Clear-Host
-Write-Host "Session will prompt for admin credentials for the relevant Azure Environment..."
-Start-Sleep -Seconds 3
-Connect-AzureAD
-Start-Sleep -Seconds 8
-Clear-Host
-Write-Host "Revoking sessions for $azureuser ..."
-Start-Sleep -Seconds 3
-Get-AzureADUser -SearchString $azureuser | Revoke-AzureADUserAllRefreshToken
-Clear-Host
-Write-Host "All Sessions Revoked!"
-Start-Sleep -Seconds 3
-}
-}
+function Invoke-HelpAndFurtherOptions {
 
-function Run-HelpAndFurtherOptions {
-Clear-Host
-Write-Host "If you have tried all of these tools and it has not fixed your issue, you may want to try some other methods manually:"
-Write-Host "Check Machine Uptime"
-Write-Host "Run Windows Updates"
-Write-Host "Reinstall Office Products"
-Write-Host "Recreate The User Profile"
-Write-Host "Use Microsoft's SARA Tool: https://aka.ms/SaRA-FirstScreen"
-Write-Host "Check Duo 2FA is not interfering with authentication, set a bypass"
-Write-Host "Try the SFC & DISM commandset"
-Write-Host "Try disabling connected experiences in Outlook: https://www.thewindowsclub.com/disable-connected-experiences-in-microsoft-office-365"
-Write-Host ""
-Write-Host "If you have any feedback for the tool please email me at cstones@thehbpgroup.co.uk"
-Write-Host ""
-Read-Host -Prompt "Press any key to go back to the main menu"
-}
-
-$omtLastUpdate = "September 2022"
-
-function Show-Menu {
-Clear-Host
-Write-Host "Outlook Master Tool (v1.2 Team Beta) by Callum Stones"
-Write-Host "QA by Anthony Wood & Luke Jackson"
-Write-Host "Tool last updated: $omtLastUpdate"
-Start-Sleep -Seconds 2
-Clear-Host
+    Write-Host "If you have tried all of these tools and it has not fixed your issue, you may want to try some other methods manually:"
+    Write-Host "Check Machine Uptime"
+    Write-Host "Run Windows Updates"
+    Write-Host "Reinstall Office Products"
+    Write-Host "Recreate The User Profile"
+    Write-Host "Use Microsoft's SARA Tool: https://aka.ms/SaRA-FirstScreen"
+    Write-Host "Check Duo 2FA is not interfering with authentication, set a bypass"
+    Write-Host "Try the SFC & DISM commandset"
+    Write-Host "Try disabling connected experiences in Outlook: https://www.thewindowsclub.com/disable-connected-experiences-in-microsoft-office-365"
+    Write-Host ""
+    Write-Host "If you have any feedback for the tool please email me at cstones@thehbpgroup.co.uk"
+    Write-Host ""
+    Read-Host -Prompt "Press any key to go back to the main menu"
 }
 
 while ($true) {
+    Show-LastUpdate
+    Show-Uptime
+    Show-LastInstallDate
     Show-Menu
     $selection = Read-Host "Select Tool (0-10)"
     switch ($selection) {
     '0' { break }
-    '1' { Run-OutlookADALRegistryKeys }
-    '2' { Run-OutlookWAMRegistryKeys }
-    '3' { Run-MSOAuthForAutoDiscoverRegistryKeys }
-    '4' { Run-RewriteAADBrokerPlugin }
-    '5' { Run-ClearOutlookProfilesAndCache }
-    '6' { Run-CredentialManagerTool }
-    '7' { Run-ClearFullOfficeCache }
-    '8' { Run-ForceLogout365ConnectedServicesOnWorkstation }
-    '9' { Run-ForceLogout365ConnectedServicesOnAzureAD }
-    '10' { Run-HelpAndFurtherOptions }
+    '1' { Invoke-OutlookADALRegistryKeys }
+    '2' { Invoke-OutlookWAMRegistryKeys }
+    '3' { Invoke-MSOAuthForAutoDiscoverRegistryKeys }
+    '4' { Invoke-RewriteAADBrokerPlugin }
+    '5' { Invoke-ClearOutlookProfilesAndCache }
+    '6' { Invoke-CredentialManagerTool }
+    '7' { Invoke-ClearFullOfficeCache }
+    '8' { Invoke-ForceLogout365ConnectedServicesOnWorkstation }
+    '9' { Invoke-ForceLogout365ConnectedServicesOnAzureAD }
+    '10' { Invoke-HelpAndFurtherOptions }
     default { Write-Host "Invalid selection. Please try again." }
     }
     }
