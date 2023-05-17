@@ -17,7 +17,8 @@
 $omtLastUpdate = "May 2023"
 
 $LocalPathHolder = Get-CimInstance Win32_Process -Filter 'name = "explorer.exe"' | Invoke-CimMethod -MethodName getowner
-$LocalPath = $LocalPathHolder.User
+$LocalPathHolderClean = $LocalPathHolder | Select-Object -First 1 
+$LocalPath = $LocalPathHolderClean.User
 
 Clear-Host
 Function UserEndMSProcess {
@@ -38,7 +39,7 @@ Clear-Host
 
 function EndMSProcess {
 
-    $msprocesses = @("WINWORD", "EXCEL", "POWERPNT", "OUTLOOK", "TEAMS", "MSACCESS", "MSPUB")
+    $msprocesses = @("WINWORD", "EXCEL", "POWERPNT", "OUTLOOK", "TEAMS", "MSACCESS", "MSPUB", "ONENOTE")
 
     foreach ($msprocess in $msprocesses) {
         $runningmsProcesses = Get-Process -Name $msprocess -ErrorAction SilentlyContinue
