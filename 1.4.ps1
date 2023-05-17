@@ -16,8 +16,10 @@
 
 $omtLastUpdate = "May 2023"
 
-$LocalPath = (Get-CimInstance Win32_ComputerSystem).UserName
+$LocalPathHolder = Get-CimInstance Win32_Process -Filter 'name = "explorer.exe"' | Invoke-CimMethod -MethodName getowner
+$LocalPath = $LocalPathHolder.User
 
+Clear-Host
 Function UserEndMSProcess {
     do {
         $response = Read-Host "Script will terminate all MS Apps, continue? (Y/N)"
@@ -32,6 +34,8 @@ Function UserEndMSProcess {
 
 UserEndMSProcess
 
+Clear-Host
+
 function EndMSProcess {
 
     $msprocesses = @("WINWORD", "EXCEL", "POWERPNT", "OUTLOOK", "TEAMS", "MSACCESS", "MSPUB")
@@ -40,10 +44,9 @@ function EndMSProcess {
         $runningmsProcesses = Get-Process -Name $msprocess -ErrorAction SilentlyContinue
     
         if ($runningmsProcesses) {
-            Write-Host "Killing process: $process"
-            $runningmsProcesses | Foreach-Object { $_.Kill() }
+            $runningmsProcesses | Foreach-Object { $_.Kill() } 
         } else {
-            Write-Host "Process not found: $process"
+           Continue
         }
     }
     
@@ -53,7 +56,7 @@ EndMSProcess
 
 function Show-LastUpdate {
     Write-Host "Outlook Master Tool (v1.4) by Callum Stones & Luke Jackson"
-    Write-Host "Tool last updated: $omtLastUpdate" -ForegroundColour Green
+    Write-Host "Tool last updated: $omtLastUpdate" -ForegroundColor Green
 }
 
 function Show-Uptime {
@@ -84,9 +87,7 @@ function Show-Menu {
     Write-Host "5. Clear Outlook Profiles & Cache"
     Write-Host "6. Credential Manager Tool"
     Write-Host "7. Clear Full Office Cache"
-    Write-Host "8. Force Log Out 365 Connected Services On Workstation"
-    Write-Host "9. Force Log Out 365 Connected Services On Azure AD"
-    Write-Host "10. Help & Further Options"
+    Write-Host "8. Help & Further Options"
 }
 
 function Invoke-ADAL {
@@ -96,6 +97,8 @@ function Invoke-ADAL {
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\15.0\Common\Identity\ –Name Version -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "ADAL Keys written. Restart Outlook." -ForegroundColor Green
     Start-Sleep -Seconds 2
+
+    Clear-Host
 }
 
 function Invoke-WAM {
@@ -105,6 +108,8 @@ function Invoke-WAM {
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Office\16.0\Common\Identity\ –Name DisableAADWAM -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "WAM Keys written. Restart Outlook." -ForegroundColor Green
     Start-Sleep -Seconds 2
+
+    Clear-Host
 }
 
 function Invoke-MSOAuth {
@@ -113,6 +118,8 @@ function Invoke-MSOAuth {
     New-ItemProperty –Path HKCU:\SOFTWARE\Microsoft\Exchange\ –Name AlwaysUseMSOAuthForAutoDiscover -Value 1 -PropertyType DWord -Force | Out-Null
     Write-Host "MSOAuth Keys written. Restart Outlook." -ForegroundColor Green
     Start-Sleep -Seconds 2
+
+    Clear-Host
 }   
    
 function Invoke-AADBroker {
@@ -121,19 +128,21 @@ function Invoke-AADBroker {
     Start-Sleep -Seconds 2
     
     Write-Host "Stopping CryptoGraphic Services..." -ForegroundColor Yellow
-    Stop-Service Crypto | Out-Null
+    Stop-Service *Crypto* | Out-Null
     Start-Sleep -Seconds 2
     
     Write-Host "Removing AAD Broker Cache..." -ForegroundColor Yellow
-    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
+    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Packages\*AAD*" -Force -Recurse | Out-Null
     Start-Sleep -Seconds 2
     
     Write-Host "Starting CryptoGraphic Services..." -ForegroundColor Yellow
-    Start-Service Crypto | Out-Null
+    Start-Service *Crypto* | Out-Null
     Start-Sleep -Seconds 2
     
     Write-Host "AAD Broker Plugin Rewritten. Restart Outlook." -ForegroundColor Green
     Start-Sleep -Seconds 2
+    
+    Clear-Host
 }
     
 function Invoke-ClearProfilesCache {
@@ -156,7 +165,7 @@ function Invoke-ClearProfilesCache {
     
     Start-Sleep -Seconds 2
 
-    Write-Host "Clearing Cache..."
+    Write-Host "Clearing Cache..." -ForegroundColor Yellow
 
     try {
         Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Outlook" -Force -Recurse | Out-Null
@@ -169,6 +178,8 @@ function Invoke-ClearProfilesCache {
     Write-Host "Profile/Cache Function Compelte. Restart Outlook." -ForegroundColor Green
 
     Start-Sleep -Seconds 2
+
+    Clear-Host
 }
     
 function Invoke-CredentialManager {
@@ -177,12 +188,16 @@ function Invoke-CredentialManager {
     Start-Sleep -Seconds 2
     Start-Process rundll32.exe keymgr.dll, KRShowKeyMgr
     Start-Sleep -Seconds 2
+
+    Clear-Host
 }
 
 function Invoke-ClearOfficeCache {
         
         Write-Host "This will clear the Office Cache. Continue? (Y/N)" -ForegroundColor Yellow
         $confirm7 = Read-Host
+
+        Clear-Host
         
         if ($confirm7 -eq 'Y') {
         Write-Host "Deleting Cache..." -ForegroundColor Yellow
@@ -192,48 +207,12 @@ function Invoke-ClearOfficeCache {
         Write-Host "Cache Deleted." -ForegroundColor Green
         Start-Sleep -Seconds 2
         }
+        Clear-Host
 } 
 
-function Invoke-ForceLogout365ConnectedServicesOnWorkstation {
-
-    Write-Host "Forcing Log Out. This can take a while. Please wait..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 2
-    Stop-Service Crypto | Out-Null
-    Start-Sleep -Seconds 2
-    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Packages*AAD*" -Force -Recurse | Out-Null
-    Start-Sleep -Seconds 2
-    Start-Service Crypto | Out-Null
-    Start-Sleep -Seconds 2
-
-    Write-Host "Log out forced. You must now check that 'Connected Work + School Accounts' has disconnected. Ensure you open an Office Application and sign out of any connected accounts using the GUI as this is not possible via script." -ForegroundColor Green
-    Read-Host -Prompt "Press any key to continue..." -ForegroundColor Green
-}
-
-function Invoke-ForceLogout365ConnectedServicesOnAzureAD {
-
-    Write-Host "Please only run this sub tool on an engineer's device! AzureAD Module should not be connected on an end-user's machine!" -ForegroundColor Yellow
-    $confirm9 = Read-Host "Confirm you have read the above (Y to continue)" -ForegroundColor Yellow
-    if ($confirm9 -eq 'Y') {
-
-    Install-Module AzureAD
-
-    $azureuser = Read-Host "Type full email of Azure user to sign out" -ForegroundColor Yellow
-
-    Write-Host "Session will prompt for admin credentials for the relevant Azure Environment..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 2
-    Connect-AzureAD
-    Start-Sleep -Seconds 2
-
-    Write-Host "Revoking sessions for $azureuser ..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 2
-    Get-AzureADUser -SearchString $azureuser | Revoke-AzureADUserAllRefreshToken
-
-    Write-Host "All Sessions Revoked!" -ForegroundColor Green
-    Start-Sleep -Seconds 2
-    }
-}
-
 function Invoke-HelpAndFurtherOptions {
+
+    Clear-Host
 
     Write-Host "If you have tried all of these tools and it has not fixed your issue, you may want to try some other methods manually:"
     Write-Host "Check Machine Uptime"
@@ -247,7 +226,9 @@ function Invoke-HelpAndFurtherOptions {
     Write-Host ""
     Write-Host "If you have any feedback for the tool please email me at cstones@thehbpgroup.co.uk"
     Write-Host ""
-    Read-Host -Prompt "Press any key to go back to the main menu" -ForegroundColor Yellow
+    Read-Host -Prompt "Press any key to go back to the main menu" 
+
+    Clear-Host
 }
 
 while ($true) {
@@ -255,9 +236,9 @@ while ($true) {
     Show-Uptime
     Show-LastInstallDate
     Show-Menu
-    $selection = Read-Host "Select Tool (0-10)" -ForegroundColor Green
+    $selection = Read-Host "Select Tool (0-8)"
     switch ($selection) {
-    '0' { break }
+    '0' { exit }
     '1' { Invoke-ADAL }
     '2' { Invoke-WAM }
     '3' { Invoke-MSOAuth }
@@ -265,9 +246,10 @@ while ($true) {
     '5' { Invoke-ClearProfilesCache }
     '6' { Invoke-CredentialManager }
     '7' { Invoke-ClearOfficeCache }
-    '8' { Invoke-ForceLogout365ConnectedServicesOnWorkstation }
-    '9' { Invoke-ForceLogout365ConnectedServicesOnAzureAD }
-    '10' { Invoke-HelpAndFurtherOptions }
-    default { Write-Host "Invalid selection. Please try again." -ForegroundColor Red}
+    '8' { Invoke-HelpAndFurtherOptions }
+    default { Write-Host "Invalid selection. Please try again." -ForegroundColor Red
+        Start-Sleep -Seconds 2
+        Clear-Host
+    } 
     }
     }
