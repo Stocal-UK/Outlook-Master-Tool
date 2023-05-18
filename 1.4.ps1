@@ -168,12 +168,8 @@ function Invoke-ClearProfilesCache {
 
     Write-Host "Clearing Cache..." -ForegroundColor Yellow
 
-    try {
-        Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Outlook" -Force -Recurse | Out-Null
-    }
-    catch {
-        Write-Host "Check Log - Clear Cache Exception Thrown" -ForegroundColor Red
-    }
+    Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Outlook" -Recurse -Force | Out-Null
+    
     Start-Sleep -Seconds 2
     
     Write-Host "Profile/Cache Function Compelte. Restart Outlook." -ForegroundColor Green
