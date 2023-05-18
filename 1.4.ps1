@@ -199,7 +199,7 @@ function Invoke-ClearOfficeCache {
         if ($confirm7 -eq 'Y') {
         Write-Host "Deleting Cache..." -ForegroundColor Yellow
         Start-Sleep -Seconds 2
-        Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Office" -Force -Recurse | Out-Null
+        Remove-Item -Path "C:\Users\$LocalPath\AppData\Local\Microsoft\Office" -Recurse -Force | Out-Null
         
         Write-Host "Cache Deleted." -ForegroundColor Green
         Start-Sleep -Seconds 2
